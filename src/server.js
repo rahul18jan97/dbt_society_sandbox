@@ -8,15 +8,14 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://sweet-gingersnap-eef4fc.netlify.app' // ❗ NO TRAILING SLASH
+    'https://sweet-gingersnap-eef4fc.netlify.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
 
-// 🔥 REQUIRED FOR PREFLIGHT
-app.options('*', cors());
+// ❌ REMOVE app.options('*', cors());
 
 app.use(express.json());
 
@@ -26,6 +25,6 @@ app.use('/api/leads', require('./modules/leads/leads_routes'));
 
 /* 🚀 Server */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

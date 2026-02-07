@@ -1,13 +1,16 @@
-const router = require('express').Router();
-const auth = require('../../middleware/auth_middleware');
-const role = require('../../middleware/role_middleware');
-const controller = require('./leads_controller');
+const express = require('express');
+const router = express.Router();
 
-router.use(auth);
+const {
+  getLeads,
+  createLead,
+  updateLead,
+  deleteLead,
+} = require('./leads_controller');
 
-router.get('/', controller.getLeads);
-router.post('/', role('ADMIN'), controller.createLead);
-router.put('/:id', role('ADMIN'), controller.updateLead);
-router.delete('/:id', role('ADMIN'), controller.deleteLead);
+router.get('/', getLeads);
+router.post('/', createLead);
+router.put('/:id', updateLead);
+router.delete('/:id', deleteLead);
 
 module.exports = router;

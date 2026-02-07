@@ -15,7 +15,7 @@ console.log('POOL 👉', pool);
 /* GET, Pool ALL LEADS */
 export async function getLeads(req, res) {
   try {
-    const result = await query(
+    const result = await pool.query(
       'SELECT * FROM fn_get_leads()'
     );
     res.json(result.rows);
@@ -23,14 +23,14 @@ export async function getLeads(req, res) {
     console.error('GET LEADS ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-}
+};
 
 /* CREATE LEAD */
-export async function createLead(req, res) {
+const createLead = async (req, res) => {
   try {
     const { lead_name, lead_email, lead_phone, lead_status } = req.body;
 
-    const result = await query(
+    const result = await pool.query(
       'SELECT fn_create_lead($1,$2,$3,$4,$5,$6)',
       [
         lead_name,
@@ -47,14 +47,14 @@ export async function createLead(req, res) {
     console.error('CREATE ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-}
+};
 
 /* UPDATE LEAD */
-export async function updateLead(req, res) {
+const updateLead = async (req, res) => {
   try {
     const { lead_name, lead_email, lead_phone, lead_status } = req.body;
 
-    const result = await query(
+    const result = await pool.query(
       'SELECT fn_update_lead($1,$2,$3,$4,$5,$6,$7)',
       [
         req.params.id,
@@ -72,12 +72,12 @@ export async function updateLead(req, res) {
     console.error('UPDATE ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-}
+};
 
 /* DELETE LEAD */
-export async function deleteLead(req, res) {
+const deleteLead = async (req, res) => {
   try {
-    await query(
+    await pool.query(
       'SELECT fn_delete_lead($1,$2,$3)',
       [
         req.params.id,
@@ -91,4 +91,11 @@ export async function deleteLead(req, res) {
     console.error('DELETE ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-}
+};
+
+module.exports = {
+  getLeads,
+  createLead,
+  updateLead,
+  deleteLead,
+};
