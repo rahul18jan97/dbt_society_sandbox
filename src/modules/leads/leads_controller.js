@@ -1,101 +1,148 @@
-const service = require('./leads_service');
+// const pool = require('../../config/db');
+// console.log('POOL 👉', pool);
 
-exports.getLeads = async (req, res) => {
-  res.json(await service.getAllLeads());
-};
-const logAudit = require('../../utils/audit_logger');
-
-exports.createLead = async (req, res) => {
-  const { lead_name, lead_email, lead_status } = req.body;
-
-  const result = await pool.query(
-    `INSERT INTO tb_leads_master_table
-     (lead_name, lead_email, lead_status)
-     VALUES ($1,$2,$3) RETURNING *`,
-    [lead_name, lead_email, lead_status]
-  );
-
-  await logAudit({
-    empId: req.user.empId,
-    role: req.user.role,
-    action: 'CREATE',
-    entity: 'LEAD',
-    entityId: result.rows[0].lead_id,
-    newData: result.rows[0],
-    ip: req.ip,
-  });
-
-  res.json(result.rows[0]);
-};
-
-// exports.createLead = async (req, res) => {
-//   res.status(201).json(await service.createLead(req.body));
+// // Controller functions
+// const getLeads = async (req, res) => {
+//   try {
+//     const result = await pool.query('SELECT * FROM fn_get_leads()');
+//     res.json(result.rows);
+//   } catch (err) {
+//     console.error('GET LEADS ERROR 👉', err);
+//     res.status(500).json({ message: err.message });
+//   }
 // };
 
-// exports.updateLead = async (req, res) => {
-//   res.json(await service.updateLead(req.params.id, req.body.status));
+// const createLead = async (req, res) => {
+//   try {
+//     const { lead_name, lead_email, lead_phone, lead_status } = req.body;
+
+//     const result = await pool.query(
+//       'SELECT fn_create_lead($1,$2,$3,$4,$5,$6)',
+//       [
+//         lead_name,
+//         lead_email,
+//         lead_phone,
+//         lead_status || 'NEW', // Default to NEW if not provided
+//         req.user?.empId || 1, // Fallback for testing
+//         req.user?.role || 'user',
+//       ]
+//     );
+
+//     res.status(201).json(result.rows[0].fn_create_lead);
+//   } catch (err) {
+//     console.error('CREATE ERROR 👉', err);
+//     res.status(500).json({ message: err.message });
+//   }
 // };
-exports.updateLead = async (req, res) => {
-  const { id } = req.params;
 
-  const old = await pool.query(
-    'SELECT * FROM tb_leads_master_table WHERE lead_id=$1',
-    [id]
-  );
+// const updateLead = async (req, res) => {
+//   try {
+//     const { lead_name, lead_email, lead_phone, lead_status } = req.body;
 
-  const updated = await pool.query(
-    `UPDATE tb_leads_master_table
-     SET lead_name=$1, lead_email=$2, lead_status=$3
-     WHERE lead_id=$4 RETURNING *`,
-    [
-      req.body.lead_name,
-      req.body.lead_email,
-      req.body.lead_status,
-      id,
-    ]
-  );
+//     const result = await pool.query(
+//       'SELECT fn_update_lead($1,$2,$3,$4,$5,$6,$7)',
+//       [
+//         req.params.id,
+//         lead_name,
+//         lead_email,
+//         lead_phone,
+//         lead_status,
+//         req.user?.empId || 1,
+//         req.user?.role || 'user',
+//       ]
+//     );
 
-  await logAudit({
-    empId: req.user.empId,
-    role: req.user.role,
-    action: 'UPDATE',
-    entity: 'LEAD',
-    entityId: id,
-    oldData: old.rows[0],
-    newData: updated.rows[0],
-    ip: req.ip,
-  });
+//     res.json(result.rows[0].fn_update_lead);
+//   } catch (err) {
+//     console.error('UPDATE ERROR 👉', err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
 
-  res.json(updated.rows[0]);
+// const deleteLead = async (req, res) => {
+//   try {
+//     await pool.query(
+//       'SELECT fn_delete_lead($1,$2,$3)',
+//       [
+//         req.params.id,
+//         req.user?.empId || 1,
+//         req.user?.role || 'user',
+//       ]
+//     );
+
+//     res.json({ message: 'Deleted successfully' });
+//   } catch (err) {
+//     console.error('DELETE ERROR 👉', err);
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// // Export ALL functions at the end
+// module.exports = {
+//   getLeads,
+//   createLead,
+//   updateLead,
+//   deleteLead,
+// };
+// ✅ TOP LEVEL - pool is available to ALL functions
+const pool= require('../../config/db');
+console.log('✅ POOL LOADED IN CONTROLLER:', pool !== undefined);
+
+const getLeads = async (req, res) => {
+  try {
+    console.log('🌐 GET LEADS CALLED');
+    const result = await pool.query('SELECT * FROM fn_get_leads()');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('❌ GET LEADS ERROR:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 };
 
-
-// exports.deleteLead = async (req, res) => {
-//   await service.deleteLead(req.params.id);
-//   res.sendStatus(204);
-// };
-exports.deleteLead = async (req, res) => {
-  const { id } = req.params;
-
-  const old = await pool.query(
-    'SELECT * FROM tb_leads_master_table WHERE lead_id=$1',
-    [id]
-  );
-
-  await pool.query(
-    'DELETE FROM tb_leads_master_table WHERE lead_id=$1',
-    [id]
-  );
-
-  await logAudit({
-    empId: req.user.empId,
-    role: req.user.role,
-    action: 'DELETE',
-    entity: 'LEAD',
-    entityId: id,
-    oldData: old.rows[0],
-    ip: req.ip,
-  });
-
-  res.json({ message: 'Deleted successfully' });
+const createLead = async (req, res) => {
+  try {
+    console.log('🌐 CREATE LEAD CALLED:', req.body);
+    const { lead_name, lead_email, lead_phone, lead_status } = req.body;
+    
+    const result = await pool.query(
+      'SELECT fn_create_lead($1,$2,$3,$4,$5,$6)',
+      [lead_name, lead_email, lead_phone, lead_status || 'NEW', 1, 'user']
+    );
+    
+    res.status(201).json(result.rows[0].fn_create_lead);
+  } catch (err) {
+    console.error('❌ CREATE LEAD ERROR:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 };
+
+const updateLead = async (req, res) => {
+  try {
+    console.log('🌐 UPDATE LEAD CALLED:', req.params.id, req.body);
+    const { lead_name, lead_email, lead_phone, lead_status } = req.body;
+    
+    const result = await pool.query(
+      'SELECT fn_update_lead($1,$2,$3,$4,$5,$6,$7)',
+      [req.params.id, lead_name, lead_email, lead_phone, lead_status, 1, 'user']
+    );
+    
+    res.json(result.rows[0].fn_update_lead);
+  } catch (err) {
+    console.error('❌ UPDATE LEAD ERROR:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const deleteLead = async (req, res) => {
+  try {
+    console.log('🌐 DELETE LEAD CALLED:', req.params.id);
+    await pool.query('SELECT fn_delete_lead($1,$2,$3)', [req.params.id, 1, 'user']);
+    res.json({ message: 'Deleted successfully' });
+  } catch (err) {
+    console.error('❌ DELETE LEAD ERROR:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ✅ ONLY export functions at BOTTOM
+module.exports = { getLeads, createLead, updateLead, deleteLead };
