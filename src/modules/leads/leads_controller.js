@@ -1,19 +1,47 @@
 // src/modules/leads/leads_controller.js
-const pool = require('../../config/db'); // adjust path to your db.js
+// const pool = require('../../config/db'); // adjust path to your db.js
+
+// exports.createLead = async (req, res) => {
+//   const { lead_name, lead_email, lead_phone, lead_status } = req.body;
+
+//   try {
+//     const result = await pool.query(
+//       'INSERT INTO leads (lead_name, lead_email, lead_phone, lead_status) VALUES ($1, $2, $3, $4) RETURNING *',
+//       [lead_name, lead_email, lead_phone, lead_status]
+//     );
+
+//     res.status(201).json(result.rows[0]);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// };
+// src/modules/leads/leads_controller.js
+const pool = require('../../config/db');
 
 exports.createLead = async (req, res) => {
   const { lead_name, lead_email, lead_phone, lead_status } = req.body;
 
   try {
     const result = await pool.query(
-      'INSERT INTO leads (lead_name, lead_email, lead_phone, lead_status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [lead_name, lead_email, lead_phone, lead_status]
+      `SELECT public.fn_create_lead(
+        $1, $2, $3, $4, $5, $6, $7
+      ) AS lead`,
+      [
+        lead_name,
+        lead_email,
+        lead_phone,
+        lead_status,
+        req.user.empId,     // from auth middleware
+        req.user.role,
+        req.ip
+      ]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(result.rows[0].lead);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Create Lead Error:', err);
+    res.status(500).json({ error: 'Failed to create lead' });
   }
 };
 
@@ -26,28 +54,28 @@ exports.getLeads = async (req, res) => {
 const logAudit = require('../../utils/audit_logger');
 
 
-exports.createLead = async (req, res) => {
-  const { lead_name, lead_email, lead_status } = req.body;
+// exports.createLead = async (req, res) => {
+//   const { lead_name, lead_email, lead_status } = req.body;
 
-  const result = await pool.query(
-    `INSERT INTO tb_leads_master_table
-     (lead_name, lead_email, lead_status)
-     VALUES ($1,$2,$3) RETURNING *`,
-    [lead_name, lead_email, lead_status]
-  );
+//   const result = await pool.query(
+//     `INSERT INTO tb_leads_master_table
+//      (lead_name, lead_email, lead_status)
+//      VALUES ($1,$2,$3) RETURNING *`,
+//     [lead_name, lead_email, lead_status]
+//   );
 
-  await logAudit({
-    empId: req.user.empId,
-    role: req.user.role,
-    action: 'CREATE',
-    entity: 'LEAD',
-    entityId: result.rows[0].lead_id,
-    newData: result.rows[0],
-    ip: req.ip,
-  });
+//   await logAudit({
+//     empId: req.user.empId,
+//     role: req.user.role,
+//     action: 'CREATE',
+//     entity: 'LEAD',
+//     entityId: result.rows[0].lead_id,
+//     newData: result.rows[0],
+//     ip: req.ip,
+//   });
 
-  res.json(result.rows[0]);
-};
+//   res.json(result.rows[0]);
+// };
 
 // exports.createLead = async (req, res) => {
 //   res.status(201).json(await service.createLead(req.body));
