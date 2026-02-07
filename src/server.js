@@ -6,12 +6,17 @@ const app = express();
 /* 🔐 CORS — MUST BE BEFORE ROUTES */
 app.use(cors({
   origin: [
-    'http://localhost:5173',          // Flutter web local
-    'http://localhost:3000',          // optional
-    'https://sweet-gingersnap-eef4fc.netlify.app/'   // replace with real Netlify URL
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://sweet-gingersnap-eef4fc.netlify.app' // ❗ NO TRAILING SLASH
   ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
+
+// 🔥 REQUIRED FOR PREFLIGHT
+app.options('*', cors());
 
 app.use(express.json());
 
