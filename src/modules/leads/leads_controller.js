@@ -1,9 +1,30 @@
+// src/modules/leads/leads_controller.js
+const pool = require('../../config/db'); // adjust path to your db.js
+
+exports.createLead = async (req, res) => {
+  const { lead_name, lead_email, lead_phone, lead_status } = req.body;
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO leads (lead_name, lead_email, lead_phone, lead_status) VALUES ($1, $2, $3, $4) RETURNING *',
+      [lead_name, lead_email, lead_phone, lead_status]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 const service = require('./leads_service');
 
 exports.getLeads = async (req, res) => {
   res.json(await service.getAllLeads());
 };
 const logAudit = require('../../utils/audit_logger');
+
 
 exports.createLead = async (req, res) => {
   const { lead_name, lead_email, lead_status } = req.body;
