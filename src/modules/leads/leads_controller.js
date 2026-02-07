@@ -1,9 +1,18 @@
 // const pool = require('../../config/db');
-import pool, { query } from '../../config/db';
+// import pool, { query } from '../../config/db';
+// console.log('POOL 👉', pool);
+
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
+
+module.exports = pool;
 console.log('POOL 👉', pool);
 
-
-/* GET ALL LEADS */
+/* GET, Pool ALL LEADS */
 export async function getLeads(req, res) {
   try {
     const result = await query(
