@@ -1,9 +1,12 @@
-const pool = require('../../config/db');
+// const pool = require('../../config/db');
+import pool, { query } from '../../config/db';
+console.log('POOL 👉', pool);
+
 
 /* GET ALL LEADS */
-exports.getLeads = async (req, res) => {
+export async function getLeads(req, res) {
   try {
-    const result = await pool.query(
+    const result = await query(
       'SELECT * FROM fn_get_leads()'
     );
     res.json(result.rows);
@@ -11,14 +14,14 @@ exports.getLeads = async (req, res) => {
     console.error('GET LEADS ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-};
+}
 
 /* CREATE LEAD */
-exports.createLead = async (req, res) => {
+export async function createLead(req, res) {
   try {
     const { lead_name, lead_email, lead_phone, lead_status } = req.body;
 
-    const result = await pool.query(
+    const result = await query(
       'SELECT fn_create_lead($1,$2,$3,$4,$5,$6)',
       [
         lead_name,
@@ -35,14 +38,14 @@ exports.createLead = async (req, res) => {
     console.error('CREATE ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-};
+}
 
 /* UPDATE LEAD */
-exports.updateLead = async (req, res) => {
+export async function updateLead(req, res) {
   try {
     const { lead_name, lead_email, lead_phone, lead_status } = req.body;
 
-    const result = await pool.query(
+    const result = await query(
       'SELECT fn_update_lead($1,$2,$3,$4,$5,$6,$7)',
       [
         req.params.id,
@@ -60,12 +63,12 @@ exports.updateLead = async (req, res) => {
     console.error('UPDATE ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-};
+}
 
 /* DELETE LEAD */
-exports.deleteLead = async (req, res) => {
+export async function deleteLead(req, res) {
   try {
-    await pool.query(
+    await query(
       'SELECT fn_delete_lead($1,$2,$3)',
       [
         req.params.id,
@@ -79,4 +82,4 @@ exports.deleteLead = async (req, res) => {
     console.error('DELETE ERROR 👉', err);
     res.status(500).json({ message: err.message });
   }
-};
+}
