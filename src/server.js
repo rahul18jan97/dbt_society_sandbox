@@ -6,9 +6,10 @@ const app = express();
 /* 🔐 CORS — MUST BE BEFORE ROUTES */
 app.use(cors({
   origin: [
+    
+    'https://sweet-gingersnap-eef4fc.netlify.app',
     'http://localhost:5173',
-    'http://localhost:3000',
-    'https://sweet-gingersnap-eef4fc.netlify.app'
+    'http://localhost:3000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
