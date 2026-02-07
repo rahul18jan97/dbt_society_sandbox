@@ -35,6 +35,36 @@ exports.createLead = async (req, res) => {
 // exports.updateLead = async (req, res) => {
 //   res.json(await service.updateLead(req.params.id, req.body.status));
 // };
+
+exports.updateLead = async (req, res) => {
+  console.log('UPDATE HIT');
+  console.log('PARAM ID 👉', req.params.id);
+  console.log('BODY 👉', req.body);
+
+  try {
+    const { name, email, phone } = req.body;
+    const id = Number(req.params.id);
+
+    if (!id) {
+      return res.status(400).json({ message: 'Invalid ID' });
+    }
+
+    const result = await pool.query(
+      `UPDATE tb_leads_master_table
+       SET name = $1, email = $2, phone = $3
+       WHERE id = $4
+       RETURNING *`,
+      [name, email, phone, id]
+    );
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('UPDATE ERROR 👉', err.message);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 exports.updateLead = async (req, res) => {
   const { id } = req.params;
 
